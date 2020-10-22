@@ -12,6 +12,9 @@
 #define Gradient(x) this->gradients[x]
 
 double sigmoid(double d);
+double SiLU(double d);
+double dsigmoid(double d);
+double dSiLU(double d);
 
 class KNN {
     private:
