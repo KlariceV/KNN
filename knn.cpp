@@ -57,7 +57,8 @@ Matrix KNN::feedforward(const Matrix& input) {
     
     for(uint i = 1; i <= L; i++) {
         Layer(i) = Matrix::multiply(Weight(i), Layer(i-1));
-        Layer(i) = Matrix::function(Layer(i), sigmoid);
+        Layer(i) = Matrix::add(Layer(i), Bias(i));
+        Layer(i) = Matrix::function(Layer(i), this->activation);
     }
     return this->layer[L];
 }
@@ -66,18 +67,17 @@ void KNN::train(const Matrix& input, const Matrix& target) {
     Layer(0) = input;
     for(uint i = 1; i <= L; i++) {
         Layer(i) = Matrix::multiply(Weight(i), Layer(i-1));
-        // Layer(i) = Matrix::add(Layer(i), Bias(i));
+        Layer(i) = Matrix::add(Layer(i), Bias(i));
         Layer(i) = Matrix::function(Layer(i), this->activation);
     }
     Delta(L) = Matrix::multiply(Matrix::subtract(Layer(L), target), Matrix::function(Matrix::multiply(Weight(L), Layer(L-1)), this->dactivation), true);
     Gradient(L) = Matrix::multiply(Delta(L), Matrix::transpose(Layer(L-1)));
     Weight(L) = Matrix::subtract(Weight(L), Matrix::multiply(Matrix::multiply(Weight(L), this->learning_rate), Gradient(L), true));
-    // Bias(L) = Matrix::subtract(Bias(L), Delta(L));
+    Bias(L) = Matrix::subtract(Bias(L), Matrix::multiply(Delta(L), this->learning_rate * .5));
     for(uint i = L-1; i > 0; i--) {
         Delta(i) = Matrix::multiply(Matrix::multiply(Matrix::transpose(Weight(i+1)), Delta(i+1)), Matrix::function(Matrix::multiply(Weight(i), Layer(i-1)), this->dactivation), true);
         Gradient(i) = Matrix::multiply(Delta(i), Matrix::transpose(Layer(i-1)));
         Weight(i) = Matrix::subtract(Weight(i), Matrix::multiply(Matrix::multiply(Weight(i), this->learning_rate), Gradient(i), true));
-        // Bias(i) = Matrix::subtract(Bias(i), Delta(i));
+        Bias(i) = Matrix::subtract(Bias(i), Matrix::multiply(Delta(i), this->learning_rate * .5));
     }
-    std::cout << Layer(L) << std::endl << std::endl;
 }
